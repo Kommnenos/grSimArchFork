@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
+if(POLICY CMP0071)
+    cmake_policy(SET CMP0071 NEW)
+endif()
 
 set(CMAKE_AUTOMOC ON)
 

@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
-
+if(POLICY CMP0072)
+    cmake_policy(SET CMP0072 NEW)
+endif()
+cmake_policy(SET CMP0071 NEW)
 
 ## Project branding, version and package mantainer
 project(grSim)

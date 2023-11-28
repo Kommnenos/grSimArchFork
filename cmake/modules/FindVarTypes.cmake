@@ -23,7 +23,7 @@ find_library(
 set(VARTYPES_LIBRARIES ${VARTYPES_LIBRARY})
 
 find_package_handle_standard_args(
-   VARTYPES
+   VarTypes
    DEFAULT_MSG
    VARTYPES_INCLUDE_DIRS
    VARTYPES_LIBRARIES
