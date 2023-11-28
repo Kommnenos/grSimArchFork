@@ -38,7 +38,7 @@ if(UNIX)
 endif()
 
 # set explicitly the c++ standard to use
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_STANDARD 17)
 
 # add src dir to included directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
@@ -60,172 +60,166 @@ list(APPEND libs ${OPENGL_LIBRARIES})
 
 # Qt
 if(APPLE AND EXISTS /usr/local/opt/qt)
-  # Homebrew installs Qt5 (up to at least 5.9.1) in
-  # /usr/local/qt5, ensure it can be found by CMake since
-  # it is not in the default /usr/local prefix.
-  list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt")
+    # Homebrew installs Qt5 (up to at least 5.9.1) in
+    # /usr/local/qt5, ensure it can be found by CMake since
+    # it is not in the default /usr/local prefix.
+    list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt")
 endif()
 find_package(Qt5 COMPONENTS Core Widgets OpenGL Network REQUIRED)
 list(APPEND libs Qt5::Core Qt5::Widgets Qt5::OpenGL Qt5::Network)
 
 # ODE
 if(WIN32)
-  find_package(ODE CONFIG REQUIRED)
-  list(APPEND libs ODE::ODE)
+    find_package(ODE CONFIG REQUIRED)
+    list(APPEND libs ODE::ODE)
 else()
-  find_package(ODE REQUIRED)
-  list(APPEND libs ode::ode)
+    find_package(ODE REQUIRED)
+    list(APPEND libs ode::ode)
 endif()
 
 # VarTypes
 find_package(VarTypes)
 
 if(NOT VARTYPES_FOUND)
-  include(ExternalProject)
-  set(VARTYPES_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/vartypes_install")
-  
-  set(VARTYPES_CMAKE_ARGS "-DVARTYPES_BUILD_STATIC=ON;-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>")
-  if(NOT "${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
-    set(VARTYPES_CMAKE_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE};${VARTYPES_CMAKE_ARGS}")
-  endif()
+    include(ExternalProject)
+    set(VARTYPES_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/vartypes_install")
 
-  ExternalProject_Add(vartypes_external
-    GIT_REPOSITORY    https://github.com/jpfeltracco/vartypes
-    GIT_TAG           origin/jpfeltracco/build_static
-    INSTALL_DIR       "${VARTYPES_INSTALL_DIR}"
-    CMAKE_ARGS        "${VARTYPES_CMAKE_ARGS}"
-  )
-  add_dependencies(${app} vartypes_external)
+    set(VARTYPES_CMAKE_ARGS "-DVARTYPES_BUILD_STATIC=ON;-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>")
+    if(NOT "${CMAKE_TOOLCHAIN_FILE}" STREQUAL "")
+        set(VARTYPES_CMAKE_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE};${VARTYPES_CMAKE_ARGS}")
+    endif()
 
-  set(VARTYPES_INCLUDE_DIRS "${VARTYPES_INSTALL_DIR}/include")
-  set(VARTYPE_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}vartypes${CMAKE_STATIC_LIBRARY_SUFFIX})
-  set(VARTYPES_LIBRARIES "${VARTYPES_INSTALL_DIR}/lib/${VARTYPE_LIB_NAME}")
+    ExternalProject_Add(vartypes_external
+            GIT_REPOSITORY    https://github.com/jpfeltracco/vartypes
+            GIT_TAG           origin/jpfeltracco/build_static
+            INSTALL_DIR       "${VARTYPES_INSTALL_DIR}"
+            CMAKE_ARGS        "${VARTYPES_CMAKE_ARGS}"
+    )
+    add_dependencies(${app} vartypes_external)
+
+    set(VARTYPES_INCLUDE_DIRS "${VARTYPES_INSTALL_DIR}/include")
+    set(VARTYPE_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}vartypes${CMAKE_STATIC_LIBRARY_SUFFIX})
+    set(VARTYPES_LIBRARIES "${VARTYPES_INSTALL_DIR}/lib/${VARTYPE_LIB_NAME}")
 endif()
 
 target_include_directories(${app} PRIVATE ${VARTYPES_INCLUDE_DIRS})
 list(APPEND libs ${VARTYPES_LIBRARIES})
 
 # Protobuf
-find_package(Protobuf REQUIRED)
+find_package(Protobuf REQUIRED CONFIG)
 include_directories(${PROTOBUF_INCLUDE_DIRS})
-list(APPEND libs ${PROTOBUF_LIBRARIES})
-
-set (Protobuf_IMPORT_DIRS ${Protobuf_INCLUDE_DIR})
-protobuf_generate_cpp(PROTO_CPP PROTO_H
-    src/proto/grSim_Commands.proto
-    src/proto/grSim_Packet.proto
-    src/proto/grSim_Replacement.proto
-    src/proto/grSim_Robotstatus.proto
-    src/proto/ssl_gc_common.proto
-    src/proto/ssl_simulation_config.proto
-    src/proto/ssl_simulation_control.proto
-    src/proto/ssl_simulation_error.proto
-    src/proto/ssl_simulation_robot_control.proto
-    src/proto/ssl_simulation_robot_feedback.proto
-    src/proto/ssl_simulation_synchronous.proto
-    src/proto/ssl_vision_detection.proto
-    src/proto/ssl_vision_geometry.proto
-    src/proto/ssl_vision_wrapper.proto
+set(PROTO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/src/proto")
+file(GLOB proto_files ${CMAKE_CURRENT_SOURCE_DIR}/src/proto/*.proto)
+protobuf_generate(
+        LANGUAGE cpp  # Generate CPP source and header files
+        OUT_VAR proto_sources  # Variable to output sources to
+        PROTOS ${proto_files}  # Paths of .proto files
+        IMPORT_DIRS ${PROTO_PATH}  # Directories for imports
+        GENERATE_EXTENSIONS .pb.cc .pb.h  # Extensions of output files
 )
 
+
 qt5_add_resources(RESOURCES
-    resources/textures.qrc
+        resources/textures.qrc
 )
 
 set(RESOURCES
-    ${RESOURCES}
-    resources/grsim.rc
+        ${RESOURCES}
+        resources/grsim.rc
 )
 
 set(SOURCES
-    src/main.cpp
-    src/mainwindow.cpp
-    src/glwidget.cpp
-    src/graphics.cpp
-    src/physics/pworld.cpp
-    src/physics/pobject.cpp
-    src/physics/pball.cpp
-    src/physics/pground.cpp
-    src/physics/pfixedbox.cpp
-    src/physics/pcylinder.cpp
-    src/physics/pbox.cpp
-    src/physics/pray.cpp
-    src/net/robocup_ssl_server.cpp
-    src/net/robocup_ssl_client.cpp
-    src/sslworld.cpp
-    src/robot.cpp
-    src/configwidget.cpp
-    src/statuswidget.cpp
-    src/logger.cpp
-    src/robotwidget.cpp
-    src/getpositionwidget.cpp
+        src/main.cpp
+        src/mainwindow.cpp
+        src/glwidget.cpp
+        src/graphics.cpp
+        src/physics/pworld.cpp
+        src/physics/pobject.cpp
+        src/physics/pball.cpp
+        src/physics/pground.cpp
+        src/physics/pfixedbox.cpp
+        src/physics/pcylinder.cpp
+        src/physics/pbox.cpp
+        src/physics/pray.cpp
+        src/net/robocup_ssl_server.cpp
+        src/net/robocup_ssl_client.cpp
+        src/sslworld.cpp
+        src/robot.cpp
+        src/configwidget.cpp
+        src/statuswidget.cpp
+        src/logger.cpp
+        src/robotwidget.cpp
+        src/getpositionwidget.cpp
 )
 
 set(HEADERS
-    include/mainwindow.h
-    include/glwidget.h
-    include/graphics.h
-    include/physics/pworld.h
-    include/physics/pobject.h
-    include/physics/pball.h
-    include/physics/pground.h
-    include/physics/pfixedbox.h
-    include/physics/pcylinder.h
-    include/physics/pbox.h
-    include/physics/pray.h
-    include/net/robocup_ssl_server.h
-    include/net/robocup_ssl_client.h
-    include/sslworld.h
-    include/robot.h
-    include/configwidget.h
-    include/statuswidget.h
-    include/logger.h
-    include/robotwidget.h
-    include/getpositionwidget.h
-    include/common.h
-    include/config.h
-)
-
-# files to be compiled
-set(srcs
-    ${CONFIG_FILES}
-    ${PROTO_CPP}
-    ${PROTO_H}
-    ${RESOURCES}
-    ${HEADERS}
-    ${SOURCES}
+        include/mainwindow.h
+        include/glwidget.h
+        include/graphics.h
+        include/physics/pworld.h
+        include/physics/pobject.h
+        include/physics/pball.h
+        include/physics/pground.h
+        include/physics/pfixedbox.h
+        include/physics/pcylinder.h
+        include/physics/pbox.h
+        include/physics/pray.h
+        include/net/robocup_ssl_server.h
+        include/net/robocup_ssl_client.h
+        include/sslworld.h
+        include/robot.h
+        include/configwidget.h
+        include/statuswidget.h
+        include/logger.h
+        include/robotwidget.h
+        include/getpositionwidget.h
+        include/common.h
+        include/config.h
 )
 
 file(GLOB CONFIG_FILES "config/*.ini")
+# files to be compiled
+set(srcs
+        ${CONFIG_FILES}
+        ${proto_files}
+        ${RESOURCES}
+        ${HEADERS}
+        ${SOURCES}
+        ${proto_sources}
+)
+
+
 set_source_files_properties(${CONFIG_FILES}  PROPERTIES MACOSX_PACKAGE_LOCATION "config")
 
 target_sources(${app} PRIVATE ${srcs})
+target_link_libraries(${app} ${libs} protobuf::libprotobuf)
+
 install(TARGETS ${app} DESTINATION bin)
-target_link_libraries(${app} ${libs})
+
 
 if(APPLE AND CMAKE_MACOSX_BUNDLE)
-  # use CMAKE_MACOSX_BUNDLE if you want to build a mac bundle
-  set(MACOSX_BUNDLE_ICON_FILE "${PROJECT_SOURCE_DIR}/resources/icons/grsim.icns")
-  set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION})
-  set(MACOSX_BUNDLE_VERSION ${VERSION})
-  set(MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${VERSION}")
-  set(BUNDLE_APP ${PROJECT_SOURCE_DIR}/bin/${app}.app)
-  install(
-      CODE "
+    # use CMAKE_MACOSX_BUNDLE if you want to build a mac bundle
+    set(MACOSX_BUNDLE_ICON_FILE "${PROJECT_SOURCE_DIR}/resources/icons/grsim.icns")
+    set(MACOSX_BUNDLE_SHORT_VERSION_STRING ${VERSION})
+    set(MACOSX_BUNDLE_VERSION ${VERSION})
+    set(MACOSX_BUNDLE_LONG_VERSION_STRING "Version ${VERSION}")
+    set(BUNDLE_APP ${PROJECT_SOURCE_DIR}/bin/${app}.app)
+    install(
+            CODE "
       include(BundleUtilities)
       fixup_bundle(\"${BUNDLE_APP}\"   \"\"   \"/opt/local/lib;/usr/local/lib\")"
-      COMPONENT Runtime)
-  set(CPACK_GENERATOR "DragNDrop" "TGZ")
+            COMPONENT Runtime)
+    set(CPACK_GENERATOR "DragNDrop" "TGZ")
 elseif(WIN32 AND CMAKE_WIN32_EXECUTABLE)
-  # use CMAKE_WIN32_EXECUTABLE if you want to build a windows exe
-  install(DIRECTORY config DESTINATION .)
-  install(DIRECTORY bin DESTINATION .
-          FILES_MATCHING PATTERN "*.dll")
-  set(CPACK_PACKAGE_EXECUTABLES ${app} ${app})
+    # use CMAKE_WIN32_EXECUTABLE if you want to build a windows exe
+    install(DIRECTORY config DESTINATION .)
+    install(DIRECTORY bin DESTINATION .
+            FILES_MATCHING PATTERN "*.dll")
+    set(CPACK_PACKAGE_EXECUTABLES ${app} ${app})
 else()
-  install(DIRECTORY config DESTINATION share/${app})
-  install(FILES resources/grsim.desktop DESTINATION share/applications)
-  install(FILES resources/icons/grsim.svg DESTINATION share/icons/hicolor/scalable/apps)
+    install(DIRECTORY config DESTINATION share/${app})
+    install(FILES resources/grsim.desktop DESTINATION share/applications)
+    install(FILES resources/icons/grsim.svg DESTINATION share/icons/hicolor/scalable/apps)
 endif()
 
 option(BUILD_CLIENTS "Choose this option if you want to build the example Qt client." ON)
@@ -266,5 +260,3 @@ else()
     set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME_LOWER}_${CPACK_PACKAGE_VERSION}_${ARCH}")
 endif()
 include(CPack)
-
-
