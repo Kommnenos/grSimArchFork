@@ -276,8 +276,8 @@ void GLWidget::mousePressEvent(QMouseEvent *event)
 void GLWidget::wheelEvent(QWheelEvent *event)
 {
     if (!ssl->g->isGraphicsEnabled()) return;
-    ssl->g->zoomCamera(-event->delta()*0.002);
-    update3DCursor(event->x(),event->y());
+    ssl->g->zoomCamera(-event->angleDelta().y()*0.002);
+    update3DCursor(event->position().x(),event->position().y());
 }
 
 void GLWidget::update3DCursor(int mouse_x,int mouse_y)
@@ -317,7 +317,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
         else
             ssl->g->cameraMotion(CameraMotionMode::ROTATE_VIEW_POINT,dx,dy);
     }
-    else if (event->buttons() & Qt::MidButton)
+    else if (event->buttons() & Qt::MiddleButton)
     {
         ssl->g->cameraMotion(CameraMotionMode::MOVE_POSITION_LR,dx,dy);
     }

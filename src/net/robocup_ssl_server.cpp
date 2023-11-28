@@ -65,7 +65,7 @@ bool RoboCupSSLServer::send(const SSL_WrapperPacket & packet)
 {
     QByteArray datagram;
 
-    datagram.resize(packet.ByteSize());
+    datagram.resize(packet.ByteSizeLong());
     bool success = packet.SerializeToArray(datagram.data(), datagram.size());
     if(!success) {
         //TODO: print useful info

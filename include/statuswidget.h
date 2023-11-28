@@ -25,7 +25,7 @@ Copyright (C) 2011, Parsian Robotic Center (eew.aut.ac.ir/~parsian/grsim)
 #include <QLabel>
 #include <QColor>
 #include <QTextDocument>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QQueue>
 #include <QColor>
 
@@ -69,7 +69,7 @@ public slots:
 
 private:
     CStatusPrinter *statusPrinter;
-    QTime logTime;
+    QElapsedTimer logTime;
 
 };
 

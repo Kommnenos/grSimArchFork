@@ -21,7 +21,7 @@ Copyright (C) 2011, Parsian Robotic Center (eew.aut.ac.ir/~parsian/grsim)
 
 #define GL_SILENCE_DEPRECATION
 #include <QGLWidget>
-#include <QTime>
+#include <QElapsedTimer>
 #include <QMenu>
 
 #include "sslworld.h"
@@ -114,7 +114,7 @@ private:
     int moving_robot_id,clicked_robot;
     int frames;
     bool first_time;
-    QTime time,rendertimer;
+    QElapsedTimer time,rendertimer;
     dReal m_fps;
     QPoint lastPos;
 };
