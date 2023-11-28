@@ -10,7 +10,9 @@ set(VERSION "1.0.0a2")
 #set(VENDOR "Parsian")
 set(MAINTAINER "Mani Monajjemi <mani.monajjemi@gmail.com>")
 
-
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
+set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,--copy-dt-needed-entries")
 # some utils and helper vars
 string(TOLOWER ${CMAKE_PROJECT_NAME} CMAKE_PROJECT_NAME_LOWER)
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
@@ -39,10 +41,6 @@ if(UNIX)
         add_definitions(-DHAVE_LINUX)
     endif()
 endif()
-
-set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
-set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
-set(CMAKE_STATIC_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
 # set explicitly the c++ standard to use
 set(CMAKE_CXX_STANDARD 17)
