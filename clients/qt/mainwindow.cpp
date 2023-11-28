@@ -157,7 +157,7 @@ void MainWindow::sendPacket()
     command->set_spinner(chkSpin->isChecked());
 
     QByteArray dgram;
-    dgram.resize(packet.ByteSize());
+    dgram.resize(packet.ByteSizeLong());
     packet.SerializeToArray(dgram.data(), dgram.size());
     udpsocket.writeDatagram(dgram, _addr, _port);
 }

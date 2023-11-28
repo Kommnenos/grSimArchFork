@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.27)
 if(POLICY CMP0072)
     cmake_policy(SET CMP0072 NEW)
 endif()
@@ -39,6 +39,10 @@ if(UNIX)
         add_definitions(-DHAVE_LINUX)
     endif()
 endif()
+
+set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
+set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
+set(CMAKE_STATIC_LINKER_FLAGS "-Wl,--copy-dt-needed-entries")
 
 # set explicitly the c++ standard to use
 set(CMAKE_CXX_STANDARD 17)
